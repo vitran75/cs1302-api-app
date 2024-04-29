@@ -7,6 +7,7 @@ import java.util.HashMap;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -18,8 +19,7 @@ import javafx.scene.text.Font;
 import javafx.geometry.Insets;
 
 /**
- * The {@code MakeupRecommendationApp} class provides methods to recommend makeup tools
- * based on the current weather condition.
+ * The {@code ApiApp} class provides methods to recommend makeup tools based on the current weather condition.
  */
 public class ApiApp extends Application {
 
@@ -30,17 +30,26 @@ public class ApiApp extends Application {
     private HBox setLocationHBox;
     private ComboBox<String> cityComboBox;
     private ComboBox<String> stateComboBox;
-    private Button setLocation;
-    private Button getLocation;
+    private Button setLocationBtn;
+    private Button clearLocation;
+    private Separator comboBoxSep;
 
     private Label locationLabel;
+    String currentCity;
+    String currentState;
+
+    private Label localTime;
+
     private HBox weatherHBox;
     private Label weatherLabel;
-    private Separator sep;
+    private Separator weatherSep;
     private Label temperatureLabel;
 
     USData USdata = new USData();
     private final Map<String, List<String>> stateCities = new HashMap<>();
+
+    AccuWeather.AccuWeatherCurrentCondition currentCondition =
+            new AccuWeather.AccuWeatherCurrentCondition();
 
     /**
      * Constructs an {@code ApiApp} object. This default (i.e., no argument)
@@ -53,12 +62,14 @@ public class ApiApp extends Application {
         this.setLocationHBox = new HBox(5);
         this.cityComboBox = new ComboBox<>();
         this.stateComboBox = new ComboBox<>();
-        this.setLocation = new Button("Set");
-        this.getLocation = new Button("Get Location");
-        this.locationLabel = new Label("Location: ");
+        this.setLocationBtn = new Button("Set");
+        this.clearLocation = new Button("Clear");
+        this.comboBoxSep = new Separator();
+        this.locationLabel = new Label();
+        this.localTime = new Label();
         this.weatherHBox = new HBox(10);
         this.weatherLabel = new Label("Current Condition: ");
-        this.sep = new Separator(Orientation.VERTICAL);
+        this.weatherSep = new Separator(Orientation.VERTICAL);
         this.temperatureLabel= new Label("Temperature: ");
     } // ApiApp
 
@@ -81,14 +92,22 @@ public class ApiApp extends Application {
             cityComboBox.getItems().clear();
             if (cities != null) {
                 cityComboBox.getItems().addAll(cities);
-            }
+            } // if
         });
 
-        setLocationHBox.getChildren().addAll(cityComboBox, stateComboBox, setLocation);
-        weatherHBox.getChildren().addAll(weatherLabel, sep, temperatureLabel);
+        setLocationHBox.getChildren().addAll(cityComboBox, stateComboBox,
+                                             setLocationBtn, clearLocation);
+        weatherHBox.getChildren().addAll(weatherLabel, weatherSep, temperatureLabel);
 
         root.setPadding(new Insets(10));
-        root.getChildren().addAll(setLocationHBox, getLocation, locationLabel, weatherHBox);
+        root.getChildren().add(setLocationHBox); //, locationLabel, weatherHBox);
+
+        setLocationBtn.setOnAction((ActionEvent e) -> getWeatherInfo(e));
+
+        clearLocation.setOnAction(e -> {
+            cityComboBox.setValue(null);
+            stateComboBox.setValue(null);
+        });
 
     } // init
     /** {@inheritDoc} */
@@ -97,11 +116,11 @@ public class ApiApp extends Application {
         // Set the default font for the entire application
         Font defaultFont = Font.font("Arial", 12);
         String style = String.format("-fx-font-family: '%s'; -fx-font-size: %.1f;",
-                                     defaultFont.getFamily(), defaultFont.getSize());
+                defaultFont.getFamily(), defaultFont.getSize());
         this.stage = stage;
         scene = new Scene(root);
         root.setStyle(style);
-        root.setPrefWidth(320);
+        root.setPrefWidth(500);
 
         // setup stage
         stage.setTitle("ApiApp!");
@@ -118,6 +137,51 @@ public class ApiApp extends Application {
     public void stop() {
         System.out.println("stop() called");
     } // stop
+
+    public void updateWeatherUI() {
+        if (root.getChildren().size() == 1) {
+            comboBoxSep.setOrientation(Orientation.HORIZONTAL);
+            root.getChildren().addAll(comboBoxSep, locationLabel, localTime, weatherHBox);
+        } // if
+        locationLabel.setText("Location: " + this.currentCity + ", " + this.currentState);
+        localTime.setText("Time: " + this.currentCondition.LocalObservationDateTime);
+        weatherLabel.setText("Condition: " + this.currentCondition.WeatherText);
+        temperatureLabel.setText("Temperature: " + this.currentCondition.Temperature.Metric.Value
+                                 + " Celsius");
+    } // updateWeatherUI
+
+    public void getWeatherInfo(ActionEvent e) {
+        setLocationBtn.setDisable(true);
+        clearLocation.setDisable(true);
+        if (this.stateComboBox.getValue() == null || this.cityComboBox.getValue() == null) {
+               AccuWeather.LocationFromIP location = AccuWeather.getLocationFromIP();
+               currentCity = location.city;
+               currentState = location.regionName;
+               Platform.runLater(() -> {
+                   this.cityComboBox.setValue(currentCity);
+                   this.stateComboBox.setValue(currentState);
+               });
+        } else {
+            currentCity = this.cityComboBox.getValue();
+            currentState = this.stateComboBox.getValue();
+        } // if
+        Thread weatherThread = new Thread(() -> {
+            try {
+                currentCondition = AccuWeather.getCurrentCondition(currentCity, currentState);
+                Platform.runLater(() -> updateWeatherUI() );
+            } catch (Exception cause) {
+                Platform.runLater(() -> {
+                    alertError(cause);
+                });
+            } finally {
+                Platform.runLater(() -> {
+                    setLocationBtn.setDisable(false);
+                    clearLocation.setDisable(false);
+                });
+            } // try
+        });
+        weatherThread.start();
+    } // getWeatherInfo
 
     /**
      * Show a modal error alert based on {@code cause}.
