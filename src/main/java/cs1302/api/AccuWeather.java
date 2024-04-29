@@ -20,7 +20,7 @@ public class AccuWeather {
         Metric Metric;
         /** Imperial temperature information. */
         Imperial Imperial;
-    }
+    } // Temperature
 
     /**
      * Represents temperature information in metric units.
@@ -32,7 +32,7 @@ public class AccuWeather {
         String Unit;
         /** The temperature unit type. */
         int UnitType;
-    }
+    } // Metric
 
     /**
      * Represents temperature information in imperial units.
@@ -44,7 +44,7 @@ public class AccuWeather {
         String Unit;
         /** The temperature unit type. */
         int UnitType;
-    }
+    } // Imperial
 
     /**
      * Represents location information obtained from the IP address.
@@ -58,7 +58,7 @@ public class AccuWeather {
         String regionName;
         /** The city name. */
         String city;
-    }
+    } // LocationFromIP
 
     /**
      * Represents an AccuWeather API document.
@@ -118,6 +118,21 @@ public class AccuWeather {
     } // fetchString
 
     /**
+     * Retrieves location information based on the IP address of the device.
+     * @return location information obtained from the IP address
+     */
+    private static LocationFromIP getLocationFromIP() {
+        try {
+            InetAddress ip = InetAddress.getLocalHost();
+            String url = IP_API_ENDPOINT + ip.getHostAddress();
+            String json = AccuWeather.fetchString(url);
+            return GSON.fromJson(json, LocationFromIP.class);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        } // try
+    } // getLocationFromIP
+
+    /**
      * Retrieves the location key corresponding to the specified city.
      * @param q the city name
      * @return the location key
@@ -134,8 +149,8 @@ public class AccuWeather {
             return result[0].Key;
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
-        }
-    }
+        } // try
+    } // getLocationFromCity
 
     /**
      * Retrieves the current weather condition for the specified city.
@@ -151,6 +166,6 @@ public class AccuWeather {
             return result[0];
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
-        }
-    }
-}
+        } // try
+    } // getCurrentCondition
+} // AccuWeather

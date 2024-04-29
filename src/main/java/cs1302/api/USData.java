@@ -1,10 +1,20 @@
 package cs1302.api;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Arrays;
 
+/**
+ * The {@code USData} class provides methods to initialize a map of US states and their cities.
+ */
 public class USData {
 
+    /**
+     * Initializes the given map with US states as keys and their corresponding cities as values.
+     * @param stateCities a map to be initialized with state-city data
+     */
     public void initializeStateCities(Map<String, List<String>> stateCities) {
+        // Populate the map with state-city data
         stateCities.put("Alabama", Arrays.asList("Birmingham", "Montgomery", "Huntsville"));
         stateCities.put("Alaska", Arrays.asList("Anchorage", "Fairbanks", "Juneau"));
         stateCities.put("Arizona", Arrays.asList("Phoenix", "Tucson", "Mesa"));

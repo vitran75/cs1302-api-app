@@ -1,6 +1,8 @@
 package cs1302.api;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -16,7 +18,8 @@ import javafx.scene.text.Font;
 import javafx.geometry.Insets;
 
 /**
- * REPLACE WITH NON-SHOUTING DESCRIPTION OF YOUR APP.
+ * The {@code MakeupRecommendationApp} class provides methods to recommend makeup tools
+ * based on the current weather condition.
  */
 public class ApiApp extends Application {
 
@@ -70,7 +73,8 @@ public class ApiApp extends Application {
         // Populate the states ComboBox with the keys from the stateCities HashMap
         stateComboBox.getItems().addAll(stateCities.keySet());
 
-        // Add a listener to the states ComboBox to populate the cities ComboBox with the corresponding cities
+        // Add a listener to the states ComboBox to populate
+        // the cities ComboBox with the corresponding cities
         stateComboBox.setOnAction(event -> {
             String selectedState = stateComboBox.getSelectionModel().getSelectedItem();
             List<String> cities = stateCities.get(selectedState);
@@ -91,8 +95,9 @@ public class ApiApp extends Application {
     @Override
     public void start(Stage stage) {
         // Set the default font for the entire application
-        Font defaultFont = Font.font("Arial", 12); // Change "Arial" to the desired font family and 14 to the desired font size
-        String style = String.format("-fx-font-family: '%s'; -fx-font-size: %.1f;", defaultFont.getFamily(), defaultFont.getSize());
+        Font defaultFont = Font.font("Arial", 12);
+        String style = String.format("-fx-font-family: '%s'; -fx-font-size: %.1f;",
+                                     defaultFont.getFamily(), defaultFont.getSize());
         this.stage = stage;
         scene = new Scene(root);
         root.setStyle(style);
