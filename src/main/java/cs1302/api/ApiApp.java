@@ -1,5 +1,6 @@
 package cs1302.api;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -19,7 +20,8 @@ import javafx.scene.text.Font;
 import javafx.geometry.Insets;
 
 /**
- * The {@code ApiApp} class provides methods to recommend makeup tools based on the current weather condition.
+ * The {@code ApiApp} class provides methods to recommend makeup tools
+ * based on the current weather condition.
  */
 public class ApiApp extends Application {
 
@@ -64,13 +66,13 @@ public class ApiApp extends Application {
         this.stateComboBox = new ComboBox<>();
         this.setLocationBtn = new Button("Set");
         this.clearLocation = new Button("Clear");
-        this.comboBoxSep = new Separator();
-        this.locationLabel = new Label();
-        this.localTime = new Label();
+        this.comboBoxSep = new Separator(Orientation.HORIZONTAL);
+        this.locationLabel = new Label("Location: none");
+        this.localTime = new Label("Time: yyyy-mm-ddThh:mm:ssZ");
         this.weatherHBox = new HBox(10);
-        this.weatherLabel = new Label("Current Condition: ");
+        this.weatherLabel = new Label("Current Condition: none");
         this.weatherSep = new Separator(Orientation.VERTICAL);
-        this.temperatureLabel= new Label("Temperature: ");
+        this.temperatureLabel= new Label("Temperature: none");
     } // ApiApp
 
     /**
@@ -96,11 +98,12 @@ public class ApiApp extends Application {
         });
 
         setLocationHBox.getChildren().addAll(cityComboBox, stateComboBox,
-                                             setLocationBtn, clearLocation);
+                setLocationBtn, clearLocation);
         weatherHBox.getChildren().addAll(weatherLabel, weatherSep, temperatureLabel);
 
         root.setPadding(new Insets(10));
-        root.getChildren().add(setLocationHBox); //, locationLabel, weatherHBox);
+        root.getChildren().addAll(setLocationHBox,
+                comboBoxSep, locationLabel, localTime, weatherHBox);
 
         setLocationBtn.setOnAction((ActionEvent e) -> getWeatherInfo(e));
 
@@ -123,11 +126,11 @@ public class ApiApp extends Application {
         root.setPrefWidth(500);
 
         // setup stage
-        stage.setTitle("ApiApp!");
-        stage.setScene(scene);
-        stage.setOnCloseRequest(event -> Platform.exit());
-        stage.sizeToScene();
-        stage.show();
+        this.stage.setTitle("ApiApp!");
+        this.stage.setScene(scene);
+        this.stage.setOnCloseRequest(event -> Platform.exit());
+        this.stage.sizeToScene();
+        this.stage.show();
     } // start
 
     /**
@@ -138,24 +141,39 @@ public class ApiApp extends Application {
         System.out.println("stop() called");
     } // stop
 
+    /**
+     * Updates the weather user interface with the current weather information.
+     * If the UI is empty, initializes the UI components and adds them to the root pane.
+     */
     public void updateWeatherUI() {
-        if (root.getChildren().size() == 1) {
-            comboBoxSep.setOrientation(Orientation.HORIZONTAL);
-            root.getChildren().addAll(comboBoxSep, locationLabel, localTime, weatherHBox);
-        } // if
         locationLabel.setText("Location: " + this.currentCity + ", " + this.currentState);
         localTime.setText("Time: " + this.currentCondition.LocalObservationDateTime);
         weatherLabel.setText("Condition: " + this.currentCondition.WeatherText);
         temperatureLabel.setText("Temperature: " + this.currentCondition.Temperature.Metric.Value
-                                 + " Celsius");
+                + " Celsius");
     } // updateWeatherUI
 
+    /**
+     * Retrieves weather information based on the selected state and city.
+     * Disables the location-related buttons during the process.
+     * If no state or city is selected, retrieves location information from IP address.
+     * Updates the UI with the retrieved weather information.
+     *
+     * @param e The ActionEvent triggering the method call.
+     */
     public void getWeatherInfo(ActionEvent e) {
         setLocationBtn.setDisable(true);
         clearLocation.setDisable(true);
         if (this.stateComboBox.getValue() == null || this.cityComboBox.getValue() == null) {
-               AccuWeather.LocationFromIP location = AccuWeather.getLocationFromIP();
-               currentCity = location.city;
+            AccuWeather.LocationFromIP location = new AccuWeather.LocationFromIP();
+            try {
+                location = AccuWeather.getLocationFromIP();
+            } catch (IOException | InterruptedException ex) {
+                Platform.runLater(() -> {
+                    alertError(ex);
+                });
+            } // try
+            currentCity = location.city;
                currentState = location.regionName;
                Platform.runLater(() -> {
                    this.cityComboBox.setValue(currentCity);
@@ -165,13 +183,14 @@ public class ApiApp extends Application {
             currentCity = this.cityComboBox.getValue();
             currentState = this.stateComboBox.getValue();
         } // if
+
         Thread weatherThread = new Thread(() -> {
             try {
                 currentCondition = AccuWeather.getCurrentCondition(currentCity, currentState);
                 Platform.runLater(() -> updateWeatherUI() );
-            } catch (Exception cause) {
+            } catch (IOException | InterruptedException ex) {
                 Platform.runLater(() -> {
-                    alertError(cause);
+                    alertError(ex);
                 });
             } finally {
                 Platform.runLater(() -> {

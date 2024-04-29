@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -21,7 +20,7 @@ import com.google.gson.GsonBuilder;
 public class AccuWeather {
 
     /**
-     * Represents an AccuWeather get location key from city API document.
+     * Represents an AccuWeather location key obtained from the city search API.
      */
     private static class AccuWeatherLocationKey {
         /**
@@ -64,7 +63,7 @@ public class AccuWeather {
          * Imperial temperature information.
          */
         Imperial Imperial;
-    }
+    } // Temperature
 
     /**
      * Represents temperature information in metric units.
@@ -82,7 +81,7 @@ public class AccuWeather {
          * The temperature unit type.
          */
         int UnitType;
-    }
+    } // Metric
 
     /**
      * Represents temperature information in imperial units.
@@ -100,7 +99,7 @@ public class AccuWeather {
          * The temperature unit type.
          */
         int UnitType;
-    }
+    } // Imperial
 
     /**
      * Represents location information obtained from the IP address.
@@ -130,7 +129,7 @@ public class AccuWeather {
 
 
     /**
-     * Represents an AccuWeather get current condition API document.
+     * Represents the current weather condition obtained from the AccuWeather API.
      */
     protected static class AccuWeatherCurrentCondition {
         /**
@@ -166,23 +165,31 @@ public class AccuWeather {
     private static final String API_KEY =
             "G13LhdykGXvFiwcy9AVAsP42fb88lANy";
 
+    /**
+     * The endpoint for searching cities and obtaining location keys.
+     */
     private static final String LOCATION_KEY_ENDPOINT =
             "http://dataservice.accuweather.com/locations/v1/cities/search";
 
+    /**
+     * The endpoint for retrieving current weather conditions.
+     */
     private static final String CURRENT_CONDITION_ENDPOINT =
             "http://dataservice.accuweather.com/currentconditions/v1/";
 
+    /**
+     * The endpoint for retrieving location information based on IP address.
+     */
     private static final String IP_API_ENDPOINT =
             "http://ip-api.com/json/";
 
     /**
      * Returns the response body string data from a URI.
      *
-     * @param uri location of desired content
-     * @return response body string
-     * @throws IOException          if an I/O error occurs when sending or receiving
-     * @throws InterruptedException if the HTTP client's {@code send} method is
-     *                              interrupted
+     * @param uri The URI of the content to fetch.
+     * @return The response body string.
+     * @throws IOException          If an I/O error occurs when sending or receiving.
+     * @throws InterruptedException If the HTTP clients send method is interrupted.
      */
     private static String fetchString(String uri) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
@@ -192,79 +199,96 @@ public class AccuWeather {
                 .send(request, BodyHandlers.ofString());
         final int statusCode = response.statusCode();
         if (statusCode != 200) {
-            throw new IOException("response status code not 200:" + statusCode);
+            throw new IOException(errorCodeParser(statusCode));
         } // if
         return response.body().trim();
     } // fetchString
 
     /**
-     * Retrieves location information based on the IP address of the device.
+     * Retrieves the location information based on the IP address of the local host.
      *
-     * @return location information obtained from the IP address
+     * @return The location information obtained from the IP address.
+     * @throws IOException          If an I/O exception occurs during the process.
+     * @throws InterruptedException If the operation is interrupted.
      */
-    protected static LocationFromIP getLocationFromIP() {
-        try {
-            InetAddress ip = InetAddress.getLocalHost();
-            String url = IP_API_ENDPOINT + ip.getHostAddress();
-            String json = AccuWeather.fetchString(url);
-            LocationFromIP location = GSON.fromJson(json, LocationFromIP.class);
-            if (location.status.equals("fail")) {
-                throw new UnknownHostException(
+    protected static LocationFromIP getLocationFromIP() throws IOException, InterruptedException {
+        InetAddress ip = InetAddress.getLocalHost();
+        String url = IP_API_ENDPOINT + ip.getHostAddress();
+        String json = AccuWeather.fetchString(url);
+        LocationFromIP location = GSON.fromJson(json, LocationFromIP.class);
+        if (location.status.equals("fail")) {
+            throw new IOException(
                     "failed to get localhost due to " + location.message);
-            } // if
-            return location;
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        } // try
+        } // if
+        return location;
     } // getLocationFromIP
 
     /**
-     * Retrieves the location key corresponding to the specified city.
+     * Retrieves the location key from the AccuWeather API
+     * based on the provided city name and state.
      *
-     * @param q the city name
-     * @return the location key
+     * @param q     The name of the city.
+     * @param state The name of the state.
+     * @return The location key obtained from the AccuWeather API.
+     * @throws IOException          If an I/O exception occurs during the process.
+     * @throws InterruptedException If the operation is interrupted.
      */
-    private static String getLocationFromCity(String q, String state) {
+    private static String getLocationFromCity(String q, String state)
+            throws IOException, InterruptedException {
         String locationKey = "";
-        try {
-            String url = String.format(
-                    "%s?apikey=%s&q=%s",
-                    AccuWeather.LOCATION_KEY_ENDPOINT,
-                    AccuWeather.API_KEY,
-                    URLEncoder.encode(q, StandardCharsets.UTF_8));
-            String json = AccuWeather.fetchString(url);
-            AccuWeatherLocationKey[] result = GSON.fromJson(json, AccuWeatherLocationKey[].class);
-            for (AccuWeatherLocationKey r : result) {
-                if (r.EnglishName.equalsIgnoreCase(q)
-                        && r.AdministrativeArea.EnglishName.equalsIgnoreCase(state)) {
-                    locationKey = r.Key;
-                    break;
-                } else {
-                    throw new IOException("bad input.");
-                } // if
-            } // for
-            return locationKey;
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        } // try
+        String url = String.format(
+                "%s?apikey=%s&q=%s",
+                AccuWeather.LOCATION_KEY_ENDPOINT,
+                AccuWeather.API_KEY,
+                URLEncoder.encode(q, StandardCharsets.UTF_8));
+        String json = AccuWeather.fetchString(url);
+        AccuWeatherLocationKey[] result = GSON.fromJson(json, AccuWeatherLocationKey[].class);
+        for (AccuWeatherLocationKey r : result) {
+            if (r.EnglishName.equalsIgnoreCase(q)
+                    && r.AdministrativeArea.EnglishName.equalsIgnoreCase(state)) {
+                locationKey = r.Key;
+                break;
+            } // if
+        } // for
+        return locationKey;
     } // getLocationFromCity
 
     /**
-     * Retrieves the current weather condition for the specified city.
+     * Retrieves the current weather condition from the AccuWeather API
+     * based on the provided city name and state.
      *
-     * @param q the city name
-     * @return the current weather condition
+     * @param q     The name of the city.
+     * @param state The name of the state.
+     * @return The current weather condition obtained from the AccuWeather API.
+     * @throws IOException          If an I/O exception occurs during the process.
+     * @throws InterruptedException If the operation is interrupted.
      */
-    protected static AccuWeatherCurrentCondition getCurrentCondition(String q, String state) {
+    protected static AccuWeatherCurrentCondition getCurrentCondition(String q, String state)
+            throws IOException, InterruptedException {
         String key = getLocationFromCity(q, state);
-        try {
-            String url = CURRENT_CONDITION_ENDPOINT + key + "?apikey=" + API_KEY;
-            String json = AccuWeather.fetchString(url);
-            AccuWeatherCurrentCondition[] result =
-                    GSON.fromJson(json, AccuWeatherCurrentCondition[].class);
-            return result[0];
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        } // try
+        String url = CURRENT_CONDITION_ENDPOINT + key + "?apikey=" + API_KEY;
+        String json = AccuWeather.fetchString(url);
+        AccuWeatherCurrentCondition[] result =
+                GSON.fromJson(json, AccuWeatherCurrentCondition[].class);
+        return result[0];
     } // getCurrentCondition
+
+    /**
+     * Parses the HTTP error code and returns the corresponding error message.
+     *
+     * @param statusCode The HTTP status code.
+     * @return The error message associated with the HTTP status code.
+     */
+    private static String errorCodeParser(int statusCode) {
+        String errorMessage = switch (statusCode) {
+            case 400 -> "Request had bad syntax or the parameters supplied were invalid.";
+            case 401 -> "Unauthorized. API authorization failed.";
+            case 403 -> "Unauthorized. You do not have permission to access this endpoint.";
+            case 404 -> "Server has not found a route matching the given URI.";
+            case 500 -> "Server encountered an unexpected condition " +
+                    "which prevented it from fulfilling the request.";
+            default -> "Unknown error occurred with status code: " + statusCode;
+        }; // switch
+        return errorMessage;
+    } // errorCodeParser
 } // AccuWeather
