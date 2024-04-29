@@ -47,7 +47,7 @@ public class ApiApp extends Application {
     private Separator weatherSep;
     private Label temperatureLabel;
 
-    USData USdata = new USData();
+    UsData usData = new UsData();
     private final Map<String, List<String>> stateCities = new HashMap<>();
 
     AccuWeather.AccuWeatherCurrentCondition currentCondition =
@@ -72,7 +72,7 @@ public class ApiApp extends Application {
         this.weatherHBox = new HBox(10);
         this.weatherLabel = new Label("Current Condition: none");
         this.weatherSep = new Separator(Orientation.VERTICAL);
-        this.temperatureLabel= new Label("Temperature: none");
+        this.temperatureLabel = new Label("Temperature: none");
     } // ApiApp
 
     /**
@@ -81,7 +81,7 @@ public class ApiApp extends Application {
     @Override
     public void init() {
         // Get cities and states data
-        USdata.initializeStateCities(stateCities);
+        usData.initializeStateCities(stateCities);
 
         // Populate the states ComboBox with the keys from the stateCities HashMap
         stateComboBox.getItems().addAll(stateCities.keySet());
@@ -113,6 +113,7 @@ public class ApiApp extends Application {
         });
 
     } // init
+
     /** {@inheritDoc} */
     @Override
     public void start(Stage stage) {
@@ -174,11 +175,11 @@ public class ApiApp extends Application {
                 });
             } // try
             currentCity = location.city;
-               currentState = location.regionName;
-               Platform.runLater(() -> {
-                   this.cityComboBox.setValue(currentCity);
-                   this.stateComboBox.setValue(currentState);
-               });
+            currentState = location.regionName;
+            Platform.runLater(() -> {
+                this.cityComboBox.setValue(currentCity);
+                this.stateComboBox.setValue(currentState);
+            });
         } else {
             currentCity = this.cityComboBox.getValue();
             currentState = this.stateComboBox.getValue();

@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.Arrays;
 
 /**
- * The {@code USData} class provides methods to initialize a map of US states and their cities.
+ * The {@code UsData} class provides methods to initialize a map of US states and their cities.
  */
-public class USData {
+public class UsData {
 
     /**
      * Initializes the given map with US states as keys and their corresponding cities as values.
@@ -116,4 +116,4 @@ public class USData {
         stateCities.put("Wyoming", Arrays.asList("Cheyenne", "Casper", "Laramie",
                 "Gillette", "Rock Springs", "Sheridan"));
     } // initializeStateCities
-} // USData
+} // UsData

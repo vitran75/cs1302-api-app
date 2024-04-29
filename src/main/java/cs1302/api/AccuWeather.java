@@ -114,7 +114,7 @@ public class AccuWeather {
          */
         String status;
         /**
-         * The error message of the query
+         * The error message of the query.
          */
         String message;
         /**
@@ -281,13 +281,13 @@ public class AccuWeather {
      */
     private static String errorCodeParser(int statusCode) {
         String errorMessage = switch (statusCode) {
-            case 400 -> "Request had bad syntax or the parameters supplied were invalid.";
-            case 401 -> "Unauthorized. API authorization failed.";
-            case 403 -> "Unauthorized. You do not have permission to access this endpoint.";
-            case 404 -> "Server has not found a route matching the given URI.";
-            case 500 -> "Server encountered an unexpected condition " +
-                    "which prevented it from fulfilling the request.";
-            default -> "Unknown error occurred with status code: " + statusCode;
+        case 400 -> "Request had bad syntax or the parameters supplied were invalid.";
+        case 401 -> "Unauthorized. API authorization failed.";
+        case 403 -> "Unauthorized. You do not have permission to access this endpoint.";
+        case 404 -> "Server has not found a route matching the given URI.";
+        case 500 -> "Server encountered an unexpected condition " +
+            "which prevented it from fulfilling the request.";
+        default -> "Unknown error occurred with status code: " + statusCode;
         }; // switch
         return errorMessage;
     } // errorCodeParser
