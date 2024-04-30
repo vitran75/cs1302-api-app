@@ -11,6 +11,7 @@ import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import com.google.gson.GsonBuilder;
 
 /**
@@ -18,7 +19,6 @@ import com.google.gson.GsonBuilder;
  * from the AccuWeather API.
  */
 public class AccuWeather {
-
     /**
      * Represents an AccuWeather location key obtained from the city search API.
      */
@@ -26,15 +26,18 @@ public class AccuWeather {
         /**
          * The location key.
          */
-        String Key;
+        @SerializedName("Key")
+        String key;
         /**
          * The city's English name.
          */
-        String EnglishName;
+        @SerializedName("EnglishName")
+        String englishName;
         /**
          * The Administrative Area.
          */
-        AdministrativeArea AdministrativeArea;
+        @SerializedName("AdministrativeArea")
+        AdministrativeArea administrativeArea;
     } // AccuWeatherLocationKey
 
     /**
@@ -42,13 +45,10 @@ public class AccuWeather {
      */
     private static class AdministrativeArea {
         /**
-         * The state's ID.
-         */
-        String ID;
-        /**
          * The state's EnglishName.
          */
-        String EnglishName;
+        @SerializedName("EnglishName")
+        String englishName;
     } // AdministrativeArea
 
     /**
@@ -58,11 +58,8 @@ public class AccuWeather {
         /**
          * Metric temperature information.
          */
-        Metric Metric;
-        /**
-         * Imperial temperature information.
-         */
-        Imperial Imperial;
+        @SerializedName("Metric")
+        Metric metric;
     } // Temperature
 
     /**
@@ -72,34 +69,9 @@ public class AccuWeather {
         /**
          * The temperature value.
          */
-        double Value;
-        /**
-         * The temperature unit.
-         */
-        String Unit;
-        /**
-         * The temperature unit type.
-         */
-        int UnitType;
+        @SerializedName("Value")
+        double value;
     } // Metric
-
-    /**
-     * Represents temperature information in imperial units.
-     */
-    protected static class Imperial {
-        /**
-         * The temperature value.
-         */
-        double Value;
-        /**
-         * The temperature unit.
-         */
-        String Unit;
-        /**
-         * The temperature unit type.
-         */
-        int UnitType;
-    } // Imperial
 
     /**
      * Represents location information obtained from the IP address.
@@ -135,15 +107,18 @@ public class AccuWeather {
         /**
          * The local observation date and time.
          */
-        String LocalObservationDateTime;
+        @SerializedName("LocalObservationDateTime")
+        String localObservationDateTime;
         /**
          * The weather text description.
          */
-        String WeatherText;
+        @SerializedName("WeatherText")
+        String weatherText;
         /**
          * The temperature information.
          */
-        Temperature Temperature;
+        @SerializedName("Temperature")
+        Temperature temperature;
     } // AccuWeatherCurrentCondition
 
     /**
@@ -244,9 +219,9 @@ public class AccuWeather {
         String json = AccuWeather.fetchString(url);
         AccuWeatherLocationKey[] result = GSON.fromJson(json, AccuWeatherLocationKey[].class);
         for (AccuWeatherLocationKey r : result) {
-            if (r.EnglishName.equalsIgnoreCase(q)
-                    && r.AdministrativeArea.EnglishName.equalsIgnoreCase(state)) {
-                locationKey = r.Key;
+            if (r.englishName.equalsIgnoreCase(q)
+                    && r.administrativeArea.englishName.equalsIgnoreCase(state)) {
+                locationKey = r.key;
                 break;
             } // if
         } // for

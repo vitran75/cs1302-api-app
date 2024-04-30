@@ -148,9 +148,9 @@ public class ApiApp extends Application {
      */
     public void updateWeatherUI() {
         locationLabel.setText("Location: " + this.currentCity + ", " + this.currentState);
-        localTime.setText("Time: " + this.currentCondition.LocalObservationDateTime);
-        weatherLabel.setText("Condition: " + this.currentCondition.WeatherText);
-        temperatureLabel.setText("Temperature: " + this.currentCondition.Temperature.Metric.Value
+        localTime.setText("Time: " + this.currentCondition.localObservationDateTime);
+        weatherLabel.setText("Condition: " + this.currentCondition.weatherText);
+        temperatureLabel.setText("Temperature: " + this.currentCondition.temperature.metric.value
                 + " Celsius");
     } // updateWeatherUI
 
