@@ -124,7 +124,7 @@ public class AccuWeather {
     /**
      * HTTP client for making requests.
      */
-    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+    protected static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_2)
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();                                     // builds and returns a HttpClient object
@@ -132,7 +132,7 @@ public class AccuWeather {
     /**
      * Google {@code Gson} object for parsing JSON-formatted strings.
      */
-    private static final Gson GSON = new GsonBuilder()
+    protected static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()                          // enable nice output when printing
             .create();                                    // builds and returns a Gson object
 
@@ -166,7 +166,7 @@ public class AccuWeather {
      * @throws IOException          If an I/O error occurs when sending or receiving.
      * @throws InterruptedException If the HTTP clients send method is interrupted.
      */
-    private static String fetchString(String uri) throws IOException, InterruptedException {
+    protected static String fetchString(String uri) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
                 .build();
