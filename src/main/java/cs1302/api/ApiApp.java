@@ -69,7 +69,7 @@ public class ApiApp extends Application {
         this.comboBoxSep = new Separator(Orientation.HORIZONTAL);
         this.locationLabel = new Label("Location: none");
         this.localTime = new Label("Time: yyyy-mm-ddThh:mm:ssZ");
-        this.weatherHBox = new HBox(10);
+        this.weatherHBox = new HBox();
         this.weatherLabel = new Label("Current Condition: none");
         this.weatherSep = new Separator(Orientation.VERTICAL);
         this.temperatureLabel = new Label("Temperature: none");
