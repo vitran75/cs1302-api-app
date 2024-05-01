@@ -19,59 +19,6 @@ import com.google.gson.GsonBuilder;
  * from the AccuWeather API.
  */
 public class AccuWeather {
-    /**
-     * Represents an AccuWeather location key obtained from the city search API.
-     */
-    private static class AccuWeatherLocationKey {
-        /**
-         * The location key.
-         */
-        @SerializedName("Key")
-        String key;
-        /**
-         * The city's English name.
-         */
-        @SerializedName("EnglishName")
-        String englishName;
-        /**
-         * The Administrative Area.
-         */
-        @SerializedName("AdministrativeArea")
-        AdministrativeArea administrativeArea;
-    } // AccuWeatherLocationKey
-
-    /**
-     * Represents represents administrative information about a state.
-     */
-    private static class AdministrativeArea {
-        /**
-         * The state's EnglishName.
-         */
-        @SerializedName("EnglishName")
-        String englishName;
-    } // AdministrativeArea
-
-    /**
-     * Represents temperature information in both metric and imperial units.
-     */
-    protected static class Temperature {
-        /**
-         * Metric temperature information.
-         */
-        @SerializedName("Metric")
-        Metric metric;
-    } // Temperature
-
-    /**
-     * Represents temperature information in metric units.
-     */
-    protected static class Metric {
-        /**
-         * The temperature value.
-         */
-        @SerializedName("Value")
-        double value;
-    } // Metric
 
     /**
      * Represents location information obtained from the IP address.
@@ -99,6 +46,74 @@ public class AccuWeather {
         String city;
     } // LocationFromIP
 
+    /**
+     * Represents an AccuWeather location key obtained from the city search API.
+     */
+    protected static class AccuWeatherLocationKey {
+        /**
+         * The location key.
+         */
+        @SerializedName("Key")
+        String key;
+        /**
+         * The city's English name.
+         */
+        @SerializedName("EnglishName")
+        String englishName;
+        /**
+         * The city's region.
+         */
+        @SerializedName("Region")
+        Region region;
+        /**
+         * The Administrative Area.
+         */
+        @SerializedName("AdministrativeArea")
+        AdministrativeArea administrativeArea;
+        /**
+         * The city's timezone.
+         */
+        @SerializedName("TimeZone")
+        TimeZone timeZone;
+    } // AccuWeatherLocationKey
+
+    /**
+     * Represents an AccuWeather location region obtained from the city search API.
+     */
+    private static class Region {
+        /**
+         * The region's ID.
+         */
+        @SerializedName("ID")
+        String id;
+        /**
+         * The region's English name.
+         */
+        @SerializedName("EnglishName")
+        String englishName;
+    } // Region
+
+    /**
+     * Represents administrative information about a state.
+     */
+    private static class AdministrativeArea {
+        /**
+         * The state's EnglishName.
+         */
+        @SerializedName("EnglishName")
+        String englishName;
+    } // AdministrativeArea
+
+    /**
+     * Represents a city's timezone.
+     */
+    protected static class TimeZone {
+        /**
+         * The timezone code.
+         */
+        @SerializedName("Code")
+        String code;
+    } // TimeZone
 
     /**
      * Represents the current weather condition obtained from the AccuWeather API.
@@ -119,12 +134,39 @@ public class AccuWeather {
          */
         @SerializedName("Temperature")
         Temperature temperature;
+        /**
+         * The relative humidity information.
+         */
+        @SerializedName("RelativeHumidity")
+        int relativeHumidity;
     } // AccuWeatherCurrentCondition
+
+    /**
+     * Represents temperature information in both metric and imperial units.
+     */
+    protected static class Temperature {
+        /**
+         * Metric temperature information.
+         */
+        @SerializedName("Metric")
+        Metric metric;
+    } // Temperature
+
+    /**
+     * Represents temperature information in metric units.
+     */
+    protected static class Metric {
+        /**
+         * The temperature value.
+         */
+        @SerializedName("Value")
+        double value;
+    } // Metric
 
     /**
      * HTTP client for making requests.
      */
-    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+    protected static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_2)
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();                                     // builds and returns a HttpClient object
@@ -132,7 +174,7 @@ public class AccuWeather {
     /**
      * Google {@code Gson} object for parsing JSON-formatted strings.
      */
-    private static final Gson GSON = new GsonBuilder()
+    protected static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()                          // enable nice output when printing
             .create();                                    // builds and returns a Gson object
 
@@ -166,7 +208,7 @@ public class AccuWeather {
      * @throws IOException          If an I/O error occurs when sending or receiving.
      * @throws InterruptedException If the HTTP clients send method is interrupted.
      */
-    private static String fetchString(String uri) throws IOException, InterruptedException {
+    protected static String fetchString(String uri) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
                 .build();
@@ -187,9 +229,7 @@ public class AccuWeather {
      * @throws InterruptedException If the operation is interrupted.
      */
     protected static LocationFromIP getLocationFromIP() throws IOException, InterruptedException {
-        InetAddress ip = InetAddress.getLocalHost();
-        String url = IP_API_ENDPOINT + ip.getHostAddress();
-        String json = AccuWeather.fetchString(url);
+        String json = AccuWeather.fetchString(IP_API_ENDPOINT);
         LocationFromIP location = GSON.fromJson(json, LocationFromIP.class);
         if (location.status.equals("fail")) {
             throw new IOException(
@@ -208,7 +248,7 @@ public class AccuWeather {
      * @throws IOException          If an I/O exception occurs during the process.
      * @throws InterruptedException If the operation is interrupted.
      */
-    private static String getLocationFromCity(String q, String state)
+    protected static AccuWeatherLocationKey getLocationFromCity(String q, String state)
             throws IOException, InterruptedException {
         String locationKey = "";
         String url = String.format(
@@ -218,30 +258,30 @@ public class AccuWeather {
                 URLEncoder.encode(q, StandardCharsets.UTF_8));
         String json = AccuWeather.fetchString(url);
         AccuWeatherLocationKey[] result = GSON.fromJson(json, AccuWeatherLocationKey[].class);
-        for (AccuWeatherLocationKey r : result) {
-            if (r.englishName.equalsIgnoreCase(q)
-                    && r.administrativeArea.englishName.equalsIgnoreCase(state)) {
-                locationKey = r.key;
-                break;
+        if (result.length == 0) {
+            throw new IOException("no city information found.");
+        }
+        for (int i = 0; i < result.length ; i++) {
+            if (result[i].englishName.equalsIgnoreCase(q)
+                    && result[i].administrativeArea.englishName.equalsIgnoreCase(state)) {
+                return result[i];
             } // if
         } // for
-        return locationKey;
+        return result[0];
     } // getLocationFromCity
 
     /**
      * Retrieves the current weather condition from the AccuWeather API
      * based on the provided city name and state.
      *
-     * @param q     The name of the city.
-     * @param state The name of the state.
+     * @param key     The API key.
      * @return The current weather condition obtained from the AccuWeather API.
      * @throws IOException          If an I/O exception occurs during the process.
      * @throws InterruptedException If the operation is interrupted.
      */
-    protected static AccuWeatherCurrentCondition getCurrentCondition(String q, String state)
+    protected static AccuWeatherCurrentCondition getCurrentCondition(String key)
             throws IOException, InterruptedException {
-        String key = getLocationFromCity(q, state);
-        String url = CURRENT_CONDITION_ENDPOINT + key + "?apikey=" + API_KEY;
+        String url = CURRENT_CONDITION_ENDPOINT + key + ".json?apikey=" + API_KEY + "&details=true";
         String json = AccuWeather.fetchString(url);
         AccuWeatherCurrentCondition[] result =
                 GSON.fromJson(json, AccuWeatherCurrentCondition[].class);
