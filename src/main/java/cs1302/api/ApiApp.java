@@ -8,7 +8,6 @@ import java.util.HashMap;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -34,21 +33,26 @@ public class ApiApp extends Application {
     private ComboBox<String> stateComboBox;
     private Button setLocationBtn;
     private Button clearLocation;
-    private Separator comboBoxSep;
 
     private Label locationLabel;
     String currentCity;
     String currentState;
 
-    private Label localTime;
+    private HBox localTime;
+    private Label date;
+    private Label time;
+    private Label timeZone;
 
     private HBox weatherHBox;
     private Label weatherLabel;
-    private Separator weatherSep;
     private Label temperatureLabel;
+    private Label humidityLabel;
 
-    UsData usData = new UsData();
+    usData usData = new usData();
     private final Map<String, List<String>> stateCities = new HashMap<>();
+
+    AccuWeather.AccuWeatherLocationKey cityInfo =
+            new AccuWeather.AccuWeatherLocationKey();
 
     AccuWeather.AccuWeatherCurrentCondition currentCondition =
             new AccuWeather.AccuWeatherCurrentCondition();
@@ -63,16 +67,22 @@ public class ApiApp extends Application {
         this.root = new VBox(5);
         this.setLocationHBox = new HBox(5);
         this.cityComboBox = new ComboBox<>();
+        this.cityComboBox.setEditable(true);
+        this.cityComboBox.setPromptText("City");
         this.stateComboBox = new ComboBox<>();
+        this.stateComboBox.setEditable(true);
+        this.stateComboBox.setPromptText("State");
         this.setLocationBtn = new Button("Set");
         this.clearLocation = new Button("Clear");
-        this.comboBoxSep = new Separator(Orientation.HORIZONTAL);
         this.locationLabel = new Label("Location: none");
-        this.localTime = new Label("Time: yyyy-mm-ddThh:mm:ssZ");
-        this.weatherHBox = new HBox();
+        this.localTime = new HBox(10);
+        this.date = new Label("Date: yyyy-mm-dd");
+        this.time = new Label("Time: hh:mm:ss");
+        this.timeZone = new Label("Timezone: Z");
+        this.weatherHBox = new HBox(10);
         this.weatherLabel = new Label("Current Condition: none");
-        this.weatherSep = new Separator(Orientation.VERTICAL);
         this.temperatureLabel = new Label("Temperature: none");
+        this.humidityLabel = new Label("Humidity: none");
     } // ApiApp
 
     /**
@@ -97,13 +107,19 @@ public class ApiApp extends Application {
             } // if
         });
 
+        // location box
         setLocationHBox.getChildren().addAll(cityComboBox, stateComboBox,
                 setLocationBtn, clearLocation);
-        weatherHBox.getChildren().addAll(weatherLabel, weatherSep, temperatureLabel);
+        // local time box
+        localTime.getChildren().addAll(date, new Separator(Orientation.VERTICAL),
+                time, new Separator(Orientation.VERTICAL), timeZone);
+        // weather condition box
+        weatherHBox.getChildren().addAll(weatherLabel, new Separator(Orientation.VERTICAL),
+                temperatureLabel, new Separator(Orientation.VERTICAL), humidityLabel);
 
         root.setPadding(new Insets(10));
         root.getChildren().addAll(setLocationHBox,
-                comboBoxSep, locationLabel, localTime, weatherHBox);
+                new Separator(), locationLabel, localTime, weatherHBox);
 
         setLocationBtn.setOnAction((ActionEvent e) -> getWeatherInfo(e));
 
@@ -114,7 +130,9 @@ public class ApiApp extends Application {
 
     } // init
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void start(Stage stage) {
         // Set the default font for the entire application
@@ -142,16 +160,23 @@ public class ApiApp extends Application {
         System.out.println("stop() called");
     } // stop
 
+    //public void
+
     /**
      * Updates the weather user interface with the current weather information.
      * If the UI is empty, initializes the UI components and adds them to the root pane.
      */
     public void updateWeatherUI() {
         locationLabel.setText("Location: " + this.currentCity + ", " + this.currentState);
-        localTime.setText("Time: " + this.currentCondition.localObservationDateTime);
+        date.setText("Date: " + this.currentCondition.localObservationDateTime.substring(0, 10));
+        time.setText("Time: " + this.currentCondition.localObservationDateTime.substring(11, 19));
+        timeZone.setText("Timezone: UTC" + this.currentCondition.
+                         localObservationDateTime.substring(19) +
+                         "(" + this.cityInfo.timeZone.code + ")");
         weatherLabel.setText("Condition: " + this.currentCondition.weatherText);
         temperatureLabel.setText("Temperature: " + this.currentCondition.temperature.metric.value
                 + " Celsius");
+        humidityLabel.setText("Humidity: " + this.currentCondition.relativeHumidity + "%");
     } // updateWeatherUI
 
     /**
@@ -187,8 +212,9 @@ public class ApiApp extends Application {
 
         Thread weatherThread = new Thread(() -> {
             try {
-                currentCondition = AccuWeather.getCurrentCondition(currentCity, currentState);
-                Platform.runLater(() -> updateWeatherUI() );
+                cityInfo = AccuWeather.getLocationFromCity(currentCity, currentState);
+                currentCondition = AccuWeather.getCurrentCondition(cityInfo.key);
+                Platform.runLater(() -> updateWeatherUI());
             } catch (IOException | InterruptedException ex) {
                 Platform.runLater(() -> {
                     alertError(ex);
@@ -205,6 +231,7 @@ public class ApiApp extends Application {
 
     /**
      * Show a modal error alert based on {@code cause}.
+     *
      * @param cause a {@link java.lang.Throwable Throwable} that caused the alert
      */
     public static void alertError(Throwable cause) {
