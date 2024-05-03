@@ -37,27 +37,12 @@ public class MakeUpAPI {
         String name;
         // Product price
         String price;
-        // Price Sign ($)
-        @SerializedName("price_sign")
-        String priceSign;
-        // Currency (CAD)
-        String currency;
-        // link to product image
+        @SerializedName("product_link")
+        String productLink;
         @SerializedName("image_link")
         String imageLink;
         // Product description
         String description;
-        // Category
-        String category;
-        // Product type
-        @SerializedName("product_type")
-        String productType;
-        // Product tag list
-        @SerializedName("tag_list")
-        String[] tagList;
-        // Product API URL
-        @SerializedName("product_api_url")
-        String productApiUrl;
         // Product colors list
         @SerializedName("product_colors")
         ProductColors[] productColors;
@@ -112,7 +97,7 @@ public class MakeUpAPI {
      * @throws InterruptedException If the thread is interrupted while
      *                              waiting for the operation to complete.
      */
-    private static List<List<MakeUp>> recommendMakeUp(String[] tagList)
+    protected static List<List<MakeUp>> recommendMakeUp(String[] tagList)
             throws IOException, InterruptedException {
 
         // list of makeup list contains makeup products sorts by product type
@@ -164,9 +149,8 @@ public class MakeUpAPI {
      * Each inner list corresponds to a makeup type and
      * contains a single randomly chosen makeup product of that type.
      */
-    private static List<List<MakeUp>> chooseOneProductRandomly(
-        List<List<MakeUp>> productListByType) {
-
+    protected static List<List<MakeUp>> chooseOneProductRandomly(
+            List<List<MakeUp>> productListByType) {
         List<List<MakeUp>> result = new ArrayList<>();
         Random r = new Random();
         for (int i = 0; i < productListByType.size(); i++) {
@@ -196,7 +180,7 @@ public class MakeUpAPI {
      * an empty string is returned for that type.
      */
     public static String[] recommendMakeUpTag(
-        String weatherText, int temperature, int relativeHumidity) {
+        String weatherText, double temperature, int relativeHumidity) {
 
         if ((weatherText.contains("hot") | temperature > 35) && relativeHumidity > 60) {
             // Hot and humid weather
