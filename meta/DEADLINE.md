@@ -57,7 +57,7 @@ http://dataservice.accuweather.com/locations/v1/cities/search?apikey=G13LhdykGXv
 ### API 3
 
 ```
-http://dataservice.accuweather.com/currentconditions/v1/348181?apikey=G13LhdykGXvFiwcy9AVAsP42fb88lANy
+http://dataservice.accuweather.com/currentconditions/v1/348181.json?apikey=G13LhdykGXvFiwcy9AVAsP42fb88lANy&details=true
 ```
 > API-Key required, current key: G13LhdykGXvFiwcy9AVAsP42fb88lANy
 > Rate-limit: 50 requests per day.
