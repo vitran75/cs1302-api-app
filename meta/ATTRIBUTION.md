@@ -9,13 +9,7 @@ Markdown is transformed into nice-looking HTML.
 
 ### Authored Assets
 
-* Example 1 Asset Name
-  - `resources/path/to/file`
-  - Your Name. Year.
-
-* Example 2 Asset Name
-  - `resources/path/to/file`
-  - Your Name. Year.
+No authored assets.
 
 ### Assets Authored by Others
 
@@ -23,14 +17,6 @@ Markdown is transformed into nice-looking HTML.
 > you should list it as "Assumed proprietary: using under academic fair use."
 > instead of leaving the license information blank.
 
-* Example 1 Asset Name
-  - `resources/path/to/file`
-  - Author. Year.
-  - URL
-  - License
-
-* Example 2 Asset Name
-  - `resources/path/to/file`
-  - Author. Year.
-  - URL
-  - License
+For each MakeUp Recommendation request, we use 5 assets according to 5 products we provided to user.
+These assets are product image provided by MakeUp API and licensed by the product's brand. So
+Assumed proprietary: using under academic fair use.

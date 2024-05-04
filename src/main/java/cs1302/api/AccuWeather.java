@@ -250,7 +250,6 @@ public class AccuWeather {
      */
     protected static AccuWeatherLocationKey getLocationFromCity(String q, String state)
             throws IOException, InterruptedException {
-        String locationKey = "";
         String url = String.format(
                 "%s?apikey=%s&q=%s",
                 AccuWeather.LOCATION_KEY_ENDPOINT,
